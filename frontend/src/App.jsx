@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { fetchTasks } from './api/tasks';
+import { fetchTasks, createTask } from './api/tasks';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import TaskList from './components/TaskList';
@@ -14,6 +14,7 @@ function App() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [numFilterApplied, setNumFilterApplied] = useState(0);
+  const [showTaskForm, setShowTaskForm] = useState(false);
 
   const load = async () => {
     try {
@@ -62,6 +63,17 @@ function App() {
     }
   };
 
+  const handleSaveTask = async formData => {
+    try {
+      await createTask(formData); // save to server.js
+      setShowTaskForm(false); // hide form
+      load(); // reload tasks
+    } catch (error) {
+      console.log('Error saving task', error);
+      alert('Error saving task!');
+    }
+  };
+
   const resetPriorityFilter = () => {
     setShowFilters(false);
     setPriorityFilter('all');
@@ -81,7 +93,15 @@ function App() {
       <header className='app-header'>
         <h1>Task Manager</h1>
         <p>React Frontend Developer Assessment</p>
-        <TaskForm />
+        {/* NEW: Task Form appears below button */}
+        {showTaskForm && (
+          <div className=' app-main transition-all duration-300 max-h-96 opacity-100 ease-in-out  p-4 border rounded-xl bg-gray-50 shadow-sm'>
+            <TaskForm
+              onSubmit={handleSaveTask}
+              onCancel={() => setShowTaskForm(false)} // ← this hides the form
+            />
+          </div>
+        )}
       </header>
 
       <main className='app-main'>
@@ -89,7 +109,10 @@ function App() {
           <div className='flex items-center justify-between gap-3 border-b p-5 border-b-gray-300'>
             <h1 className='font-semibold text-2xl'>Your Tasks</h1>
             <div className='flex items-center gap-5'>
-              <button className='flex items-center justify-center gap-1 bg-blue-500 rounded-lg py-1 px-3 text-white cursor-pointer transition-colors hover:bg-blue-600'>
+              <button
+                className='flex items-center justify-center gap-1 bg-blue-500 rounded-lg py-1 px-3 text-white cursor-pointer transition-colors hover:bg-blue-600'
+                onClick={() => setShowTaskForm(!showTaskForm)}
+              >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   width='20'
